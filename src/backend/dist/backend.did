@@ -1,0 +1,287 @@
+type Value = 
+ variant {
+   "bool": bool;
+   float: float64;
+   "int": int;
+   "nat": nat;
+   "null";
+   "text": text;
+ };
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   address: text;
+   city: text;
+   email: text;
+   name: text;
+   phone: text;
+ };
+type Timestamp = int;
+type ReviewId = nat;
+type Review = 
+ record {
+   author: text;
+   createdAt: Timestamp;
+   id: ReviewId;
+   productId: ProductId;
+   rating: nat;
+   "text": text;
+ };
+type Result__1 = 
+ variant {
+   err: Error;
+   ok;
+ };
+type Result = 
+ record {
+   hasMore: bool;
+   rows: vec vec Cell;
+ };
+type ProductSort = 
+ variant {
+   discount;
+   newest;
+   popular;
+   priceAsc;
+   priceDesc;
+   rating;
+ };
+type ProductPage = 
+ record {
+   items: vec Product;
+   page: nat;
+   pageSize: nat;
+   total: nat;
+ };
+type ProductInput = 
+ record {
+   brand: text;
+   categoryId: CategoryId;
+   colors: vec text;
+   description: text;
+   discount: nat;
+   images: vec text;
+   inStock: bool;
+   isNew: bool;
+   isPopular: bool;
+   name: text;
+   oldPrice: nat;
+   price: nat;
+   sizes: vec text;
+   specs: vec record {
+                text;
+                text;
+              };
+   stock: nat;
+ };
+type ProductId = nat;
+type ProductFilter = 
+ record {
+   brand: opt text;
+   categoryId: opt CategoryId;
+   color: opt text;
+   inStockOnly: bool;
+   maxPrice: opt nat;
+   minPrice: opt nat;
+   minRating: opt float64;
+   onSaleOnly: bool;
+   search: opt text;
+   size: opt text;
+ };
+type Product = 
+ record {
+   brand: text;
+   categoryId: CategoryId;
+   colors: vec text;
+   createdAt: Timestamp;
+   description: text;
+   discount: nat;
+   id: ProductId;
+   images: vec text;
+   inStock: bool;
+   isNew: bool;
+   isPopular: bool;
+   name: text;
+   oldPrice: nat;
+   price: nat;
+   rating: float64;
+   reviewCount: nat;
+   sizes: vec text;
+   specs: vec record {
+                text;
+                text;
+              };
+   stock: nat;
+ };
+type OrderStatus = 
+ variant {
+   accepted;
+   assembling;
+   delivered;
+   shipped;
+ };
+type OrderItem = 
+ record {
+   color: text;
+   image: text;
+   name: text;
+   price: nat;
+   productId: ProductId;
+   quantity: nat;
+   size: text;
+ };
+type OrderId = nat;
+type Order = 
+ record {
+   address: text;
+   city: text;
+   comment: text;
+   createdAt: Timestamp;
+   delivery: DeliveryMethod;
+   deliveryCost: nat;
+   discount: nat;
+   firstName: text;
+   id: OrderId;
+   items: vec OrderItem;
+   lastName: text;
+   phone: text;
+   status: OrderStatus;
+   subtotal: nat;
+   total: nat;
+   user: principal;
+ };
+type Error = 
+ variant {
+   AmbiguousAttribute: record {
+                         field: text;
+                         sources: vec text;
+                       };
+   FrontendOriginMismatch: record {
+                             expected: vec text;
+                             got: text;
+                           };
+   FrontendOriginsNotConfigured;
+   MalformedCandid;
+   MissingField: text;
+   MixedSsoSources: record {
+                      otherKeys: vec text;
+                      ssoKeys: vec text;
+                    };
+   NoAttributes;
+   Stale: record {ageNs: nat;};
+   UnknownNonce;
+   UntrustedSsoSource: record {domain: text;};
+ };
+type DeliveryMethod = 
+ variant {
+   courier;
+   pickupPoint;
+   selfPickup;
+ };
+type DashboardStats = 
+ record {
+   orderCount: nat;
+   ordersByStatus: vec record {
+                         text;
+                         nat;
+                       };
+   popularProducts: vec Product;
+   productCount: nat;
+   salesByDay: vec record {
+                     text;
+                     nat;
+                   };
+   salesTotal: nat;
+   userCount: nat;
+ };
+type CheckoutInput = 
+ record {
+   address: text;
+   city: text;
+   comment: text;
+   delivery: DeliveryMethod;
+   firstName: text;
+   lastName: text;
+   phone: text;
+ };
+type Cell = 
+ record {
+   name: text;
+   value: Value;
+ };
+type CategoryInput = 
+ record {
+   icon: text;
+   name: text;
+   slug: text;
+ };
+type CategoryId = nat;
+type Category = 
+ record {
+   icon: text;
+   id: CategoryId;
+   name: text;
+   slug: text;
+ };
+type CartItem = 
+ record {
+   color: text;
+   productId: ProductId;
+   quantity: nat;
+   size: text;
+ };
+service : {
+  _initialize_access_control: () -> ();
+  _internet_identity_sign_in_finish: () -> (Result__1);
+  _internet_identity_sign_in_start: () -> (blob);
+  addFavorite: (productId: nat) -> ();
+  addToCart: (productId: nat, quantity: nat, color: text, size: text) -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  checkout: (input: CheckoutInput) -> (Order);
+  clearCart: () -> ();
+  createCategory: (input: CategoryInput) -> (Category);
+  createProduct: (input: ProductInput) -> (Product);
+  deleteCategory: (id: nat) -> (bool);
+  deleteProduct: (id: nat) -> (bool);
+  execute: (qJson: text) -> (Result) query;
+  /// Returns the backend API documentation as static Markdown.
+  getApiDoc: () -> (text) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getCart: () -> (vec CartItem) query;
+  getDashboardStats: () -> (DashboardStats) query;
+  getDiscountedProducts: (limit: nat) -> (vec Product) query;
+  getNewProducts: (limit: nat) -> (vec Product) query;
+  getOrder: (id: nat) -> (opt Order) query;
+  getPopularProducts: (limit: nat) -> (vec Product) query;
+  getProduct: (id: nat) -> (opt Product) query;
+  getSimilarProducts: (id: nat, limit: nat) -> (vec Product) query;
+  getTopProducts: (limit: nat) -> (vec Product) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  isCallerAdmin: () -> (bool) query;
+  listAllOrders: () -> (vec Order) query;
+  listBrands: () -> (vec text) query;
+  listCategories: () -> (vec Category) query;
+  listFavorites: () -> (vec Product) query;
+  listOrders: () -> (vec Order) query;
+  listProducts: (filter: ProductFilter, sort: ProductSort, page: nat,
+   pageSize: nat) -> (ProductPage) query;
+  listReviews: (productId: nat) -> (vec Review) query;
+  listUsers: () -> (vec record {
+                          principal;
+                          UserProfile;
+                        }) query;
+  removeFavorite: (productId: nat) -> ();
+  removeFromCart: (productId: nat) -> ();
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  schema: () -> (text) query;
+  updateCartItem: (productId: nat, quantity: nat) -> ();
+  updateCategory: (id: nat, input: CategoryInput) -> (opt Category);
+  updateOrderStatus: (id: nat, status: OrderStatus) -> (opt Order);
+  updateProduct: (id: nat, input: ProductInput) -> (opt Product);
+}
